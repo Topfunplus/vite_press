@@ -17,7 +17,7 @@ hero:
       text: Echarts
       link: /echarts
     - theme: alt
-      text: Jenkins
+      text: Jenkin基本配置
       link: /jenkins
 
 features:
@@ -26,5 +26,5 @@ features:
   - title: PlanB
     details: 学习React的组件思想，学习React基本语法
   - title: PlanC
-    details: 完善博客项目，快速进入开发
+    details: 完善博客项目，快速进入开发7897
 ---
