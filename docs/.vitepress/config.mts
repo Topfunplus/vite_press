@@ -1,3 +1,4 @@
+// @ts-ignore
 import {defineConfig} from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
@@ -11,6 +12,7 @@ export default defineConfig({
             {text: 'React 语法学习', link: '/markdown-examples'},
             {text: 'React API学习', link: '/api-examples'},
             {text: 'echarts 学习', link: '/echarts'},
+            {text: 'jenkins', link: '/jenkins'},
         ],
 
         sidebar: [

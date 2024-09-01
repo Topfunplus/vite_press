@@ -16,6 +16,9 @@ hero:
     - theme: alt
       text: Echarts
       link: /echarts
+    - theme: alt
+      text: Jenkins
+      link: /jenkins
 
 features:
   - title: PlanA
