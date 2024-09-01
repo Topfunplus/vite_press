@@ -4,7 +4,7 @@
 
 ## Echarts的封装实现
 
-Echarts开发的时候，一定要把option搞明白是什么东西，option是echarts的核心，盒子是装echarts的容器，setOption是用来渲染表格并且配置的
+Echarts开发的时候，一定要把option搞明白是什么东西，option是echarts的核心，盒子是装echarts的容器，setOption是用来渲染表格并且配置的.
 
 
 
