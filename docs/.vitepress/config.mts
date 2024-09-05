@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: '天明的博客😎',
+  title: 'Life is short,I use JavaScript😎',
   description: '"action speaks louder than words"',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
@@ -14,6 +14,7 @@ export default defineConfig({
       { text: 'echarts 学习', link: '/echarts' },
       { text: 'jenkins', link: '/jenkins' },
       { text: 'docker', link: '/docker' },
+      { text: '数学建模', link: '/math' },
     ],
 
     sidebar: [
@@ -26,6 +27,7 @@ export default defineConfig({
           { text: 'jenkins 学习', link: '/jenkins' },
           { text: 'docker 学习', link: '/docker' },
           { text: 'xhr_fetch', link: '/xhr_fetch' },
+          { text: '数学建模', link: '/math' },
         ],
       },
     ],

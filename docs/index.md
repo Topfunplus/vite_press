@@ -4,8 +4,8 @@ layout: home
 
 hero:
   name: "快速学习React"
-  text: "该文档是快速学习React的学习记录"
-  tagline: 想要学习React，因为真的感觉很高端!由jenkins自动打包，双爆啦!太双拉!
+  text: "Study React quickly"
+  tagline: "学习React的最好方式就是实践"
   actions:
     - theme: brand
       text: 进入学习
