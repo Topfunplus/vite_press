@@ -1,12 +1,16 @@
+# 题设重现及部分解决方案推理
+
+## 第一问
+
 **假设检验**是一种在统计学中用来**做决策**的方法，简单来说就是通过数据来判断某个说法是否有道理。
 
 我们可以用一个日常例子来解释：
 
-### 场景：
+场景假设：
 
 假设你认为你最喜欢的咖啡店的咖啡每杯都有 200 毫升（这是咖啡店的“ **标称量** ”）。但是有一天，你喝了一杯觉得好像少了，于是你决定做个 **测试** ，看看他们的咖啡是不是真的总是有 200 毫升。
 
-### 假设检验步骤：
+假设检验步骤：
 
 1. **提出假设** ：
 
@@ -20,9 +24,9 @@
 3. **做出决定** ：
 
 * 如果这些数据和 200 毫升非常接近，差得不多，你就可以说：“这些杯子大致都是 200 毫升。” 这意味着 **接受原假设** ，认为咖啡店没有问题。
-* 如果数据显示很多杯的咖啡都明显少于 200 毫升，你就可以说：“这家咖啡店的咖啡量确实比 200 毫升少。” 这意味着你 **拒绝原假设** ，采信备择假设，认为咖啡店给的量少了。
+* 如果数据显示很多杯的咖啡都明显少于 200 毫升，你就可以说：“这家咖啡店的咖啡量确实比 200 毫升少。” 这意味着你 **拒绝原假设** ，采信备择假设，认为咖啡店给的量少了
 
-### 结论：
+结论：
 
 假设检验的核心是： **通过数据来判断原来的说法（假设）是否站得住脚** 。如果数据支持这个说法，就接受它；如果不支持，就拒绝它。
 
@@ -315,7 +319,7 @@ z=98−1003/40=−4.22z = \frac{98 - 100}{3 / \sqrt{40}} = -4.22**z**=**3/**40**
 具体的样本容量和最大次品数 \( k \) 会根据实际应用中选择的 \( n \) 和所需的准确度而有所不同。上述示例仅供参考，实际计算应使用适当的统计工具进行精确计算。
 
 
-# 第二问
+## 第二问
 
 要为这个问题制定合理的决策方案，我们可以将企业的生产过程进行分解，并根据不同的次品率、成本、利润以及检测和拆解的成本来构建模型。这个模型将帮助企业在每个阶段作出最优决策，从而最小化次品的产生和处理成本，最大化企业的效益。
 
@@ -364,9 +368,7 @@ z=98−1003/40=−4.22z = \frac{98 - 100}{3 / \sqrt{40}} = -4.22**z**=**3/**40**
 
 如果需要更具体的模型和计算方式，可以提供更详细的次品率、检测和拆解成本数据，我可以帮助设计更精确的数学模型或决策树。
 
-
 ### 决策树
-
 
 **决策树**是一种常用于决策分析和机器学习中的图形化工具。它以树状结构表示决策过程，其中每个节点代表一个决策或条件，每个分支代表不同的选择或结果，最终的叶节点则代表决策的结果或结论。
 
@@ -449,3 +451,1151 @@ plt.show()
 ```
 
 这个简单的决策树示例说明了如何通过不同的决策点来决定生产流程中每一步的选择。
+
+
+## 最终解决
+
+经过不懈努力终于是搞出了程序，不过是最简单的暴力枚举
+
+
+### 问题一第一问
+
+```python
+import numpy as np 
+from sympy import sqrt,solve
+import pandas as pd
+import math
+import matplotlib.pyplot as plt
+from sympy.abc import x,y
+pd.set_option('display.max_rows', None) # 展示所有行
+pd.set_option('display.max_columns', None) # 展示所有列
+
+__p1__ = 0.1
+__res__ = 1.64 #由信度计算得 0.05
+__min_n__ = 99999
+p0s = []
+ns = []
+__b__ = []
+#枚举p0
+for __p0__ in np.arange(0.01, 0.1, 0.01):
+  result = solve([(x - y * __p0__) / sqrt(y*__p0__ * (1 - __p0__))-__res__,
+                  -((x - y * __p1__) / sqrt(y*__p1__ * (1 - __p1__)))-__res__ ],
+                 [x,y])
+  __b__.append(result[0][0])
+  ns.append(result[0][1])
+  p0s.append(__p0__) 
+#构建二维表
+df = pd.DataFrame({'n':ns,'p':p0s,'b':__b__},index=p0s)
+df.to_excel('D:\\quest_one_1.xlsx', sheet_name='2024B1', index=True)
+print(df)
+#求导
+dn_dp = np.gradient(ns, p0s)
+diffs = []
+print('数值导数为',dn_dp)
+
+#计算绝对值
+for i in range(0,len(dn_dp)-1):
+    j = i + 1 
+    diff = math.fabs(dn_dp[j] - dn_dp[i])
+    diffs.append(diff)
+print('绝对值',diffs) 
+dn_dp_two = np.gradient(dn_dp, p0s)
+print('二阶导数为',dn_dp_two)
+dn_dp_three = np.gradient(dn_dp_two, p0s)
+print('三阶导数为',dn_dp_three)
+  
+plt.plot(p0s,ns)
+plt.xlabel('p')  # x 轴标签
+plt.ylabel('n')  # y 轴标签
+plt.grid(True)
+plt.show()
+```
+
+
+
+### 问题一第二问
+
+```python
+import numpy as np 
+import math 
+from sympy import sqrt,solve
+import matplotlib.pyplot as plt
+import pandas as pd
+from sympy.abc import x,y
+pd.set_option('display.max_rows', None) # 展示所有行
+pd.set_option('display.max_columns', None) # 展示所有列
+
+__res__ = 1.28 #由信度计算得
+__min_n__ = 99999
+__p0__ = 0.1
+p1s = []
+ns = []
+__b__ = []
+for __p1__ in np.arange(0.9, 0.1, -0.01): 
+  result = solve([(x - y * __p0__) / sqrt(y*__p0__ * (1 - __p0__))-__res__,
+                  -((x - y * __p1__) / sqrt(y*__p1__ * (1 - __p1__)))-__res__ ],
+                 [x,y])
+  ns.append(result[0][1])
+  __b__.append(result[0][0])
+  p1s.append(__p1__)
+
+#构建二维表
+df = pd.DataFrame({'n':ns,'p':p1s,'b':__b__},index=p1s)
+# df.to_excel('D:\\question_one_2.xlsx', sheet_name='2024B2', index=True)
+print(df)
+
+dn_dp = np.gradient(ns, p1s)
+diffs = []
+print('数值导数为',dn_dp)
+for i in range(0,len(dn_dp)-1):
+    j = i + 1 
+    diff = math.fabs(dn_dp[j] - dn_dp[i])
+    diffs.append(diff)
+
+print('绝对值',diffs) 
+dn_dp_two = np.gradient(dn_dp, p1s)
+print('二阶导数为',dn_dp_two)
+dn_dp_three = np.gradient(dn_dp_two, p1s)
+print('三阶导数为',dn_dp_three)
+  
+plt.plot(p1s,ns)
+# 4. 添加标签和标题
+plt.xlabel('p')  # x 轴标签
+plt.ylabel('n')  # y 轴标签
+plt.grid(True)
+plt.show()
+```
+
+
+### 问题二
+
+```python
+import pandas as pd
+import numpy as np
+from decimal import Decimal, getcontext
+import random
+import itertools
+# 设置精度
+getcontext().prec = 10  # 设置全局精度
+#定义常量
+SALES = 56  #成品的市场售价
+PRICE_A = 4 #零件1和2的单价
+PRICE_B = 18
+COST = 6  #装配成本
+#结果
+results = []
+  
+def init():
+  #零件
+  DATA = {'A':[
+    [0.1,PRICE_A,2],[0.2,PRICE_A,2],[0.1,PRICE_A,2],[0.2,PRICE_A,1],[0.1,4,8],[0.05,PRICE_A,2]
+  ],'B':[
+    [0.1,PRICE_B,3],[0.2,PRICE_B,3],[0.1,PRICE_B,3],[0.2,PRICE_B,1],[0.2,PRICE_B,1],[0.05,PRICE_B,3]
+  ]}
+  #成品
+  PRODUCTS = [[0.1,COST,3,SALES],[0.2,COST,3,SALES],[0.1,COST,3,SALES],[0.2,COST,2,SALES],[0.1,COST,2,SALES],[0.05,COST,3,SALES]]
+  #不合格成品
+  BELOWS = [[6,5],[6,5],[30,5],[30,5],[10,5],[10,40]]
+  DATA_COL = ['次品率','购买单价','检测成本']
+  PRODUCTS_COL = ['次品率','装配成本','检测成本','市场售价']
+  BELOWS_COL = ['调换损失','拆解费用']
+  return {
+    'MODS_A':pd.DataFrame(data=DATA['A'],columns=DATA_COL),
+    'MODS_B':pd.DataFrame(data=DATA['B'],columns=DATA_COL),
+    'PRODUCTS':pd.DataFrame(data=PRODUCTS,columns=PRODUCTS_COL),
+    'BELOWS':pd.DataFrame(BELOWS,columns=BELOWS_COL)
+  }
+  
+#计算实际成品率和实际次品率
+# x1、x2为决策，data为零件数据 products为成品数据 i为哪个零件取A或B j为第几种情况
+def ActualYield(x1, x2, dataA, dataB, products, j):
+    # 使用 Decimal 进行精度控制
+    actual = {'实际次品率': None, '实际成品率': None}
+  
+    #决策
+    if x1 == 1 and x2 == 1:
+        actual['实际成品率'] = Decimal(1) -Decimal(products['次品率'][j])
+    if x1 == 0 and x2 == 1:
+        actual['实际成品率'] = (Decimal(1) - Decimal(dataA['次品率'][j])) * Decimal(1) * (Decimal(1) - Decimal(products['次品率'][j]))
+    if x1 == 1 and x2 == 0:
+        actual['实际成品率'] = Decimal(1) * (Decimal(1) - Decimal(dataB['次品率'][j])) * (Decimal(1) - Decimal(products['次品率'][j]))
+    if x1 == 0 and x2 == 0:
+        actual['实际成品率'] = (Decimal(1) - Decimal(dataA['次品率'][j])) * (Decimal(1) - Decimal(dataB['次品率'][j])) * (Decimal(1) - Decimal(products['次品率'][j]))
+  
+    # 计算实际次品率
+    actual['实际次品率'] = Decimal(1) - actual['实际成品率']
+    return actual
+
+#计算零件检测损失 purchase:购买单价 defective:次品率 cost检测成本
+def CalculatingPartLoss(data,j):
+  purchase,defective,cost = data['购买单价'][j],data['次品率'][j],data['检测成本'][j]
+  return purchase * Decimal(defective) + cost
+
+#cost检测成本 __MODS_DISMANTLE__决策变量是否要拆解 below不合格品
+# dismantle拆解费用 x1 x2分别是两个零件是否检测 testing_cost检测费用 rate是实际次品率
+def CalculateTheLossOfFinishedProductInspection(data,below,j,choice,x1,x2,testing_cost,rate):
+  inspection = 0
+  cost,dismantle = data['检测成本'][j],below['拆解费用'][j]
+  #在检测中 如果检测出次品 做出决策 判断是否要拆
+  __MODS_DISMANTLE_AFTER__ = choice
+  #拆
+  if __MODS_DISMANTLE_AFTER__ == 1:
+    print('是否拆解决策->如果检测不合格(即次品)拆解')
+    inspection = cost + (rate * (dismantle + COST + x1 * testing_cost[0] + x2 * testing_cost[1]) )
+  #不拆
+  else:
+    print('是否拆解决策->如果检测出次品不拆解(直接丢弃)')
+    inspection = cost + rate * (PRICE_A + PRICE_B + COST + dismantle + x1 * testing_cost[0] + x2 * testing_cost[1]) 
+  return inspection,__MODS_DISMANTLE_AFTER__
+
+#不检测
+#below 不合格成品
+def CalculateTheLossOfFinishedProductInspectionWithout(below,j,x1,x2,choice,testing_cost,rate):
+  inspection = 0
+  change,dismantle = below['调换损失'][j], below['拆解费用'][j]
+  #做出决策
+  __MODS_DISMANTLE_BACK__ = choice
+  #拆
+  if __MODS_DISMANTLE_BACK__ == 1:
+    print('是否拆解决策->市场调回的不合格品拆解')
+    inspection = change * rate + __MODS_DISMANTLE_BACK__ * (dismantle + COST  + x1 * testing_cost[0] + x2 * testing_cost[1]) * rate
+  #不拆
+  else:
+    print('是否拆解决策->市场调回的不合格品不拆解(直接丢弃)')
+    inspection = change * rate + rate * (PRICE_A + PRICE_B + COST + x1 * testing_cost[0] + x2 * testing_cost[1])
+  return inspection,__MODS_DISMANTLE_BACK__
+
+#笛卡尔积
+def IterTools():
+  # 枚举五个变量，每个变量的取值是 0 或 1
+  variables = [0, 1]
+  all_combinations = list(itertools.product(variables, repeat=4))
+  return all_combinations
+   
+   
+   
+def Decision(__MODS_A__,__MODS_B__,__MODS_PRODUCTS__,results):
+  # 产生决策
+  iter = IterTools()
+  MODS_A = init()['MODS_A']
+  MODS_B = init()['MODS_B']
+  PRODUCTS = init()['PRODUCTS']
+  BELOWS = init()['BELOWS']
+  
+  # 遍历六种情况 
+  for j in range(0,6):
+      # 利润
+      PROFIT = [0,0,0,0,0,0] 
+      print('******第一种情况******')
+      # 每种情况不断循环决策 从笛卡尔积中拿出来一种决策
+      for making_choice in iter:
+        print('决策数:',making_choice)
+        #零件做出决策
+        decisionA = making_choice[0] 
+        decisionB = making_choice[1]
+        print('---零件检测决策---')
+        res = ActualYield(decisionA,decisionB,dataA=MODS_A,dataB=MODS_B,products=PRODUCTS,j=j)
+        #检测费用
+        testing_cost = [0,0]
+        print('零件检测决策-> 零件A:',__MODS_A__[decisionA],',','零件B:',__MODS_B__[decisionB],',','决策结果产出的实际次品率:',res['实际次品率'])
+        #决策后，根据decisionA 和 decisionB 来计算损失
+        if __MODS_A__[decisionA] == 1 and __MODS_B__[decisionB] == 0:
+          testing_cost[0] = CalculatingPartLoss(MODS_A,j) #
+        elif __MODS_A__[decisionA] == 0 and __MODS_B__[decisionB] == 1:
+          testing_cost[1] = CalculatingPartLoss(MODS_B,j) #检测B但是不检测A
+        elif __MODS_A__[decisionA] == 1 and __MODS_B__[decisionB] == 1:
+          testing_cost[0] = CalculatingPartLoss(MODS_A,j) 
+          testing_cost[1] = CalculatingPartLoss(MODS_B,j)
+        else:
+          testing_cost[0] = 0
+          testing_cost[1] = 0
+        print('该决策下的检测费用为:',testing_cost[0]+testing_cost[1]) #检测费用
+      
+        #成品做出决策
+        print('---成品检测决策---')
+        decisionProducts = making_choice[2]
+        finished_product_inspection = 0
+        #如果成品检测
+        if __MODS_PRODUCTS__[decisionProducts] == 1:
+          #计算成品检测损失
+          print('---是否拆解决策---')
+          finished_product_inspection,after = CalculateTheLossOfFinishedProductInspection(PRODUCTS,BELOWS,
+                                                      j=j,choice=making_choice[3],
+                                                      x1=__MODS_A__[decisionA],x2=__MODS_B__[decisionB],
+                                                      testing_cost=testing_cost,rate=res['实际次品率'])
+          print('成品检测决策->成品检测')
+        #不检测
+        else:
+          print('成品检测决策->成品不检测')
+        
+          finished_product_inspection,back = CalculateTheLossOfFinishedProductInspectionWithout(BELOWS,j
+                                                                                          ,x1=__MODS_A__[decisionA],
+                                                                                          x2=__MODS_B__[decisionB],
+                                                                                          choice=making_choice[3],
+                                                                                          testing_cost=testing_cost,
+                                                                                          rate=res['实际次品率'])
+        print('成品检测损失费用为:',finished_product_inspection)
+        #计算利润
+        CONST = SALES - (PRICE_A + PRICE_B + COST) 
+        TIME_PROFIT = CONST - (testing_cost[0]+testing_cost[1]) - finished_product_inspection
+        #保存结果
+        results.append([f'情况{j+1}',{'决策数':making_choice,'利润':TIME_PROFIT}])
+      
+        print('第一种情况下该道利润为:',TIME_PROFIT)
+        PROFIT[j] = max(PROFIT[j],TIME_PROFIT)
+        print('第一种情况最大利润为:',PROFIT[j])
+        print('===做出的决策===')
+        #保存该次做出的决策
+        print('1.零件决策:','零件A:',__MODS_A__[decisionA],'零件B',__MODS_B__[decisionB])
+        print('2.成品检验决策:',__MODS_PRODUCTS__[decisionProducts])
+        if __MODS_PRODUCTS__[decisionProducts] == 1:
+          print('3.如果成品检验下，检测出次品，拆与不拆的决策:',after)
+        else:
+          print('3.如果成品不检验下，市场发现次品调回后，拆与不拆的决策:',back)
+      
+        print('\n')
+      print('第',j,'种情况下最大利润:',PROFIT[j])
+      print('******第',j,'种情况结束******')
+      print('\n')
+
+if __name__ == '__main__':
+  #开始随机决策
+  MODS_A = init()['MODS_A']
+  #定义决策变量
+  __MODS_A__ = (0,1)  #零件12是否检测
+  __MODS_B__ = (0,1)
+  __MODS_PRODUCTS__ = (0,1) #成品是否检验
+  Decision(__MODS_A__,__MODS_B__,__MODS_PRODUCTS__,results)
+  # print(results)
+  df = pd.DataFrame(results,columns=['情况','决策情况'])
+  df.to_excel('D:\\results.xlsx', sheet_name='利润和决策数', index=True)
+```
+
+
+### 问题三
+
+```python
+import itertools
+from decimal import Decimal, getcontext
+import pandas as pd
+import numpy as np
+from functools import reduce
+getcontext().prec = 10  # 设置全局精度
+# inspection_cost 检测成本
+# purchase_cost 购买单价
+# defective_rate 次品率
+# assembly_cost 装配成品
+# dismantling_cost 拆解费用
+# market_price 市场售价
+# exchange_loss 调换损失
+PARTS = [
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 2, 'inspection_cost': 1},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 8, 'inspection_cost': 1},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 12, 'inspection_cost': 2},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 2, 'inspection_cost': 1},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 8, 'inspection_cost': 1},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 12, 'inspection_cost': 2},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 8, 'inspection_cost': 1},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 12, 'inspection_cost': 2}
+]
+
+SEMIFINISHED_PRODUCTS = [
+    {'defective_rate': Decimal('0.1'), 'assembly_cost': 8, 'inspection_cost': 4, 'dismantling_cost': 6},
+    {'defective_rate': Decimal('0.1'), 'assembly_cost': 8, 'inspection_cost': 4, 'dismantling_cost': 6},
+    {'defective_rate': Decimal('0.1'), 'assembly_cost': 8, 'inspection_cost': 4, 'dismantling_cost': 6}
+]
+
+FINISHED_PRODUCT = {
+    'defective_rate': Decimal('0.1'), 'assembly_cost': 8, 'inspection_cost': 6, 'dismantling_cost': 10,
+    'market_price': 200, 'exchange_loss': 40
+}
+
+
+
+# 计算利润 parts_decisions是决策变量 如(1,1,1) 代表 三个零件全部检测 第j个半成品 
+
+# 零件的检测会影响半成品的成品率
+#                             8是第一个半成品是否检测  10是第二个半成品是否检测  12是第三个产品是否检测  14是成品是否检测
+
+#                              0 1 2 3 4 5 6 7   8 9 10 11  12 13  14 15
+# 用一个hash数组 来存储状态 例如 0 1 0 0 1 0 0 0   1 1  1 1    0 0    1 0
+# decision[0~3) -> 计算出第一个产品的次品率 保存在hash[0]中 根据 decision[step,step+len(decision)]) 来算出一个半成品的检测损失 保存在 hash[j]中 
+# j取1 2 3
+# 如果 8 ,10, 12 为 0 则 9 11 13 无效 即不决策是否拆解
+# 否则 要根据 decision[8] decision[10] decision[12] 来计算成品的检测损失 根据hash[j] j=1,2,3 来计算 第j个半成品的次品率 保存在 hash[j++]中
+# 根据 hash[j = 4,5,6]来计算成品的检测损失 保存在 hash[j++]
+# 成品不检测会有调回拆解费用
+
+
+
+# parts_decisions 当前决策
+def calculate_profit(parts_decisions):
+    print('当前的决策为:',parts_decisions)
+
+    # 利润
+    PROFIT = 0
+    # 零件购买成本花费
+    total_costs = []
+  
+  
+    decision = parts_decisions # 当前决策
+    # hash = [None] * len(parts_decisions)
+    hash = {}
+    ass_defective_rates = [Decimal(1),Decimal(1),Decimal(1)] # 三个半成品次品率
+    ass_access_rates = [Decimal(1),Decimal(1),Decimal(1)] # 三个半成品成品率
+  
+    part_testing_cost = [0,0,0] # 零件检测损失
+    ass_testing_cost = [] # 半成品检测损失
+    finish_testing_cost = [] # 成品检测损失
+  
+    # 汇总
+    res_part_testing_cost = 0
+    res_ass_testing_cost = 0
+    res_finish_testing_cost = 0
+  
+    finish_defective_rates = Decimal(1) # 成品的次品率
+    finish_access_rates = Decimal(1)     # 成品的成品率
+    step = 0
+    counter = 0 
+  
+    # 检测成本
+    PART_COST = [0,0,0]
+    ASS_COST = [0,0,0]
+  
+    # 零件成固定本
+    FIXED = 0
+    for m in PARTS:
+        FIXED += m['purchase_cost']
+  
+    print('===1.开始对零件进行检测===')
+    # 对零件的检测
+    while step < len(decision):
+        if step >= 8:
+            break
+        # 前两个半成品
+        else:
+            if step < 6:
+                cost = 0
+                # 遍历某个半成品的每一位 如 0 0 1 是 组成一个半成品 他的每一位
+                for choice in range( step , step + 3):
+                  
+                    # 计算固定购买成本 每一组是一个半成品
+                    cost += Decimal(PARTS[choice]['purchase_cost']) 
+                  
+                    # 零件如果不检测
+                    if decision[choice] == 0 :
+                        print('零件不检测')
+                        ass_access_rates[counter] *= (Decimal(1) - Decimal(PARTS[choice]['defective_rate']))
+                      
+                    # 零件如果检测
+                    else:
+                        print('零件检测')
+                        # 检测成本
+                        PART_COST[counter] += PARTS[choice]['inspection_cost']
+                        # 零件检测损失
+                        part_testing_cost[counter] += (Decimal(PARTS[choice]['inspection_cost']) + PARTS[choice]['defective_rate'] * Decimal(PARTS[choice]['purchase_cost']))
+                        print('零件检测损失:',part_testing_cost)
+                        ass_access_rates[counter] *= Decimal(1)
+              
+              
+                # 半成品也有可能是次品
+                ass_access_rates[counter] *= (Decimal(1) - SEMIFINISHED_PRODUCTS[counter]['defective_rate'])
+              
+                # 计算次品率
+                ass_defective_rates[counter] = Decimal(1) - ass_access_rates[counter]
+              
+                # 添加购买成本
+                total_costs.append(cost)
+                step += 3  
+                counter += 1
+          
+            #最后一个半成品  
+            else:
+                cost = 0
+                # 遍历某个半成品的每一位
+              
+                for choice in range( step , step + 2):
+                    # 计算固定成本
+                    cost += Decimal(PARTS[choice]['inspection_cost'])
+                  
+                    # 如果不检测 
+                    if decision[choice] == 0 :
+                        print('零件不检测')
+                        ass_access_rates[counter] *= (Decimal(1) - Decimal(PARTS[choice]['defective_rate']))
+                    # 如果检测
+                    else:
+                        print('零件检测')
+                        # 计算检测成本
+                        PART_COST[counter] += PARTS[choice]['inspection_cost']
+                      
+                        # 计算检测损失
+                        part_testing_cost[counter] += (Decimal(PARTS[choice]['inspection_cost']) + PARTS[choice]['defective_rate'] * Decimal(PARTS[choice]['purchase_cost']))
+                        ass_access_rates[counter] *= Decimal(1)
+                        print('零件检测损失:',part_testing_cost)
+                      
+                  
+                ass_access_rates[counter] *= (Decimal(1) - SEMIFINISHED_PRODUCTS[counter]['defective_rate'])
+                ass_defective_rates[counter] = Decimal(1) - ass_access_rates[counter]    # 计算次品率
+              
+                #添加购买成本
+                total_costs.append(cost)
+                step += 2
+                counter += 1
+       
+    # 计算总的零件检测成本     
+    for part_testing_cost_item in part_testing_cost:
+        res_part_testing_cost += part_testing_cost_item     
+  
+  
+    # 对半成品 1 2 3 分别进行 检测拆解的决策: step = 8  counter = 3 
+    print('step=',step,'counter=',counter)
+    print('===2.开始对半成品检测===')
+    counter = 0
+  
+    # 开始对半成品是否检测  并且计算成品的成品率 检测成本
+    while step <= 12:
+        # 半成品1 要检测 有检测损失  
+        if decision[step] == 1:
+          
+            # 如果半成品检测， 成品率就是产品本身成品率
+            finish_access_rates = Decimal(1) - FINISHED_PRODUCT['defective_rate']
+          
+            print('半成品检测')
+            ASS_COST[counter] += SEMIFINISHED_PRODUCTS[counter]['inspection_cost']   
+          
+            # 如果拆解 有拆解费用
+            if decision[step + 1] == 1:
+                print('半成品拆解')
+              
+                # p = vi + f(x1,x2,x3) + (ui + ni + sum(xi * li) )
+                res = SEMIFINISHED_PRODUCTS[counter]['inspection_cost'] + ass_defective_rates[counter] * (SEMIFINISHED_PRODUCTS[counter]['assembly_cost'] + SEMIFINISHED_PRODUCTS[counter]['dismantling_cost'] + PART_COST[counter]) 
+                print('半成品的检测损失:',res)
+                # 半成品的检测损失
+                ass_testing_cost.append(res)
+              
+            # 如果不拆解
+            else:
+                print('半成品不拆解')
+                  
+                  
+                # total_costs 第i 个半成品的零件成本  
+                res = SEMIFINISHED_PRODUCTS[counter]['inspection_cost'] + ass_defective_rates[counter] * (total_costs[counter] + PART_COST[counter] ) 
+                print('半成品的检测损失:',res)
+                ass_testing_cost.append(res)
+          
+        # 如果不检测 无拆解费用 无检测费用 但是要计算成品的次品率
+        else:
+            finish_access_rates *= ass_access_rates[counter]
+             
+            finish_access_rates *= Decimal(1) - FINISHED_PRODUCT['defective_rate']  
+            print('该半成品不检测') 
+          
+        step += 2
+        counter += 1
+ 
+      
+  
+    # 计算总的半成品检测损失
+    for ass_testing_cost_item in ass_testing_cost:
+        res_ass_testing_cost += ass_testing_cost_item
+  
+  
+  
+  
+    print('===开始对成品进行检测===')
+    # step = 12
+    print('step=',step)
+
+    # 成品检测 乘以 1 算检测损失
+    if decision[step] == 1:
+        print('成品检测')
+      
+        # 如果拆
+        if decision[step+1] == 1:
+            print('成品检测后 拆掉')
+            finish_testing_cost = 6 + (Decimal(1) - finish_access_rates) * (8 + 10 + 6 * 3 + 8 * 3  + sum(ASS_COST) + sum(PART_COST))
+            print('零件检测成本:',sum(PART_COST),'半成品的检测成本:',sum(ASS_COST))
+            print('成品的检测损失',finish_testing_cost)
+          
+        # 如果不拆
+        else:
+            print('成品检测后 不拆扔掉')
+            finish_testing_cost = 6 + (Decimal(1) - finish_access_rates) * (8 + 8 * 3 + sum(ASS_COST) + FIXED + sum(PART_COST))
+            print('成品的检测损失',finish_testing_cost)
+      
+        # 计算利润
+      
+        PROFIT = 200 - (FIXED + sum(part_testing_cost) + 8 * 3 + 8 + sum(ass_testing_cost) + finish_testing_cost)
+      
+    # 不检测 要计算次品率 还有调回成本
+    else:
+        print('成品不检测')
+        if decision[step+1] == 1:
+            print('成品不检测 拆掉')
+            finish_testing_cost = (Decimal(1) - finish_access_rates) * (40 + (8 + 10 + 6 * 3 + 8 * 3  + sum(ASS_COST) + sum(PART_COST)))
+            print('成品的检测损失',finish_testing_cost)
+        # 如果不拆
+        else:
+            print('成品不检测 且 不拆扔掉')
+            finish_testing_cost = (Decimal(1) - finish_access_rates) * (40 + (8 + 8 * 3 + sum(ASS_COST) + FIXED + sum(PART_COST)))
+      
+      
+
+        PROFIT = 200 - (FIXED + sum(part_testing_cost) + 8 * 3 + 8  + sum(ass_testing_cost) + finish_testing_cost )
+
+  
+    # 保存
+    hash = {'决策':decision,'决策零件总成本':FIXED,'零件的检测损失':part_testing_cost,'半成品的检测成本:':sum(ASS_COST),'半成品成品率':ass_access_rates,'半成品检测损失':ass_testing_cost,'成品的成品率':finish_access_rates,'成品的总损失':finish_testing_cost,'利润':PROFIT}
+  
+    print('工序结果:',hash)
+    print('工序利润:',PROFIT)
+    print('===计算完毕===')
+
+    return hash
+
+
+
+# 决策过程
+def enumerate_decision_scenarios():
+
+    all_combinations = list(itertools.product([0,1], repeat=16))
+    # 最大利润 默认是最小值
+    best_profit = Decimal('-inf')
+    # 最佳选择
+    best_decision = None
+    hashes = []
+    print('===开始计算===')
+    for decision in all_combinations:
+        # part_ABC_decision = decision[:3]
+        # part_DEF_decision = decision[3:6]
+        # part_GH_decision = decision[6:8]
+        # print('---零件决策方案---')
+        # print('1 2 3 零件的检测决策:',part_ABC_decision)
+        # print('4 5 6 零件的检测决策:',part_DEF_decision)
+        # print('7 8 零件的检测决策:',part_GH_decision)
+        # print('该次决策:',decision)
+        # print('-----------------')
+  
+        hash = calculate_profit(parts_decisions=decision)
+        hashes.append(hash)
+      
+    df = pd.DataFrame(hashes)
+    df.to_excel('D:\\question_three.xlsx', sheet_name='res', index=True)
+if __name__ == '__main__':
+    enumerate_decision_scenarios()
+
+
+
+```
+
+
+### 第四问
+
+挣扎了很久，第四问只计算了对于第二问的最好情况与最坏情况
+
+
+计算置信区间
+
+```python
+import itertools
+from decimal import Decimal, getcontext
+import pandas as pd
+import numpy as np
+from functools import reduce
+getcontext().prec = 10  # 设置全局精度
+
+SALES = 56  #成品的市场售价
+PRICE_A = 4 #零件1和2的单价
+PRICE_B = 18
+COST = 6  #装配成本
+
+DATA = {'A':[
+  [0.1,PRICE_A,2],[0.2,PRICE_A,2],[0.1,PRICE_A,2],[0.2,PRICE_A,1],[0.1,4,8],[0.05,PRICE_A,2]
+],'B':[
+  [0.1,PRICE_B,3],[0.2,PRICE_B,3],[0.1,PRICE_B,3],[0.2,PRICE_B,1],[0.2,PRICE_B,1],[0.05,PRICE_B,3]
+]}
+#成品
+PRODUCTS = [[0.1,COST,3,SALES],[0.2,COST,3,SALES],[0.1,COST,3,SALES],[0.2,COST,2,SALES],[0.1,COST,2,SALES],[0.05,COST,3,SALES]]
+
+
+PARTS = [
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 2, 'inspection_cost': 1},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 8, 'inspection_cost': 1},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 12, 'inspection_cost': 2},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 2, 'inspection_cost': 1},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 8, 'inspection_cost': 1},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 12, 'inspection_cost': 2},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 8, 'inspection_cost': 1},
+    {'defective_rate': Decimal('0.1'), 'purchase_cost': 12, 'inspection_cost': 2}
+]
+
+SEMIFINISHED_PRODUCTS = [
+    {'defective_rate': Decimal('0.1'), 'assembly_cost': 8, 'inspection_cost': 4, 'dismantling_cost': 6},
+    {'defective_rate': Decimal('0.1'), 'assembly_cost': 8, 'inspection_cost': 4, 'dismantling_cost': 6},
+    {'defective_rate': Decimal('0.1'), 'assembly_cost': 8, 'inspection_cost': 4, 'dismantling_cost': 6}
+]
+
+FINISHED_PRODUCT = {
+    'defective_rate': Decimal('0.1'), 'assembly_cost': 8, 'inspection_cost': 6, 'dismantling_cost': 10,
+    'market_price': 200, 'exchange_loss': 40
+}
+
+
+# 给定单次样品抽样结果的次品率p 和 样本容量n 计算
+
+def calculate_result():
+    # 0.95 和 0.9 信度下 Z = 1.96 和 Z = 1.64
+    n_95 = 82
+    n_90 = 81
+    Z95 = 1.96
+    Z90 = 1.64
+  
+    # MODS_A = init()['MODS_A']
+    # MODS_B = init()['MODS_B']
+  
+    # 枚举次品率
+    result = []
+  
+    # 0.95 
+    for p in DATA['A']:
+      # 右边界
+      RIGHT =  p[0] + ( Z95 * np.sqrt(n_95 *  p[0] * (1 -  p[0])) / n_95 )
+      LEFT =  p[0] - ( Z95 * np.sqrt(n_95 *  p[0] * (1 -  p[0])) / n_95 )
+      result.append({'P':p[0],'置信区间':[LEFT,RIGHT]})
+    
+    
+    
+    for p in DATA['B']:
+      # 右边界
+      RIGHT =  p[0] + ( Z95 * np.sqrt(n_95 *  p[0] * (1 -  p[0])) / n_95 )
+      LEFT =  p[0] - ( Z95 * np.sqrt(n_95 *  p[0] * (1 -  p[0])) / n_95 )
+      result.append({'P':p[0],'置信区间':[LEFT,RIGHT]})
+
+  
+    for p in PRODUCTS:
+      RIGHT =  p[0] + ( Z95 * np.sqrt(n_95 *  p[0] * (1 -  p[0])) / n_95 )
+      LEFT =  p[0] - ( Z95 * np.sqrt(n_95 *  p[0] * (1 -  p[0])) / n_95 )
+      result.append({'P':p[0],'置信区间':[LEFT,RIGHT]})
+    
+    
+  
+    df = pd.DataFrame(result)  
+    df.to_excel('D:\\question_four.xlsx', sheet_name='利润和决策数', index=True)
+  
+if __name__ == '__main__':
+    calculate_result()
+
+
+```
+
+
+计算最好情况
+
+```python
+import pandas as pd
+import numpy as np
+from decimal import Decimal, getcontext
+import random
+import itertools
+# 设置精度
+getcontext().prec = 10  # 设置全局精度
+#定义常量
+SALES = 56  #成品的市场售价
+PRICE_A = 4 #零件1和2的单价
+PRICE_B = 18
+COST = 6  #装配成本
+#结果
+results = []
+  
+def init():
+  #零件
+  DATA = {'A':[
+    [0.03506626266799023,PRICE_A,2],[0.11342168355732031,PRICE_A,2],[0.03506626266799023,PRICE_A,2],[0.11342168355732031,PRICE_A,1],[0.03506626266799023,4,8],[0.0028267334905591746,PRICE_A,2]
+  ],'B':[
+    [0.03506626266799023,PRICE_B,3],[0.11342168355732031,PRICE_B,3],[0.03506626266799023,PRICE_B,3],[0.11342168355732031,PRICE_B,1],[0.11342168355732031,PRICE_B,1],[0.0028267334905591746,PRICE_B,3]
+  ]}
+  #成品
+  PRODUCTS = [[0.03506626266799023,COST,3,SALES],[0.11342168355732031,COST,3,SALES],[0.03506626266799023,COST,3,SALES],[0.11342168355732031,COST,2,SALES],[0.03506626266799023,COST,2,SALES],[0.0028267334905591746,COST,3,SALES]]
+  #不合格成品
+  BELOWS = [[6,5],[6,5],[30,5],[30,5],[10,5],[10,40]]
+  DATA_COL = ['次品率','购买单价','检测成本']
+  PRODUCTS_COL = ['次品率','装配成本','检测成本','市场售价']
+  BELOWS_COL = ['调换损失','拆解费用']
+  return {
+    'MODS_A':pd.DataFrame(data=DATA['A'],columns=DATA_COL),
+    'MODS_B':pd.DataFrame(data=DATA['B'],columns=DATA_COL),
+    'PRODUCTS':pd.DataFrame(data=PRODUCTS,columns=PRODUCTS_COL),
+    'BELOWS':pd.DataFrame(BELOWS,columns=BELOWS_COL)
+  }
+  
+#计算实际成品率和实际次品率
+# x1、x2为决策，data为零件数据 products为成品数据 i为哪个零件取A或B j为第几种情况
+def ActualYield(x1, x2, dataA, dataB, products, j):
+    # 使用 Decimal 进行精度控制
+    actual = {'实际次品率': None, '实际成品率': None}
+  
+    #决策
+    if x1 == 1 and x2 == 1:
+        actual['实际成品率'] = Decimal(1) - Decimal(products['次品率'][j])
+    if x1 == 0 and x2 == 1:
+        actual['实际成品率'] = (Decimal(1) - Decimal(dataA['次品率'][j])) * Decimal(1) * (Decimal(1) - Decimal(products['次品率'][j]))
+    if x1 == 1 and x2 == 0:
+        actual['实际成品率'] = Decimal(1) * (Decimal(1) - Decimal(dataB['次品率'][j])) * (Decimal(1) - Decimal(products['次品率'][j]))
+    if x1 == 0 and x2 == 0:
+        actual['实际成品率'] = (Decimal(1) - Decimal(dataA['次品率'][j])) * (Decimal(1) - Decimal(dataB['次品率'][j])) * (Decimal(1) - Decimal(products['次品率'][j]))
+  
+    # 计算实际次品率
+    actual['实际次品率'] = Decimal(1) - actual['实际成品率']
+    return actual
+
+#计算零件检测损失 purchase:购买单价 defective:次品率 cost检测成本
+def CalculatingPartLoss(data,j):
+  purchase,defective,cost = data['购买单价'][j],data['次品率'][j],data['检测成本'][j]
+  return purchase * Decimal(defective) + cost
+
+#cost检测成本 __MODS_DISMANTLE__决策变量是否要拆解 below不合格品
+# dismantle拆解费用 x1 x2分别是两个零件是否检测 testing_cost检测费用 rate是实际次品率
+def CalculateTheLossOfFinishedProductInspection(data,below,j,choice,x1,x2,testing_cost,rate):
+  inspection = 0
+  cost,dismantle = data['检测成本'][j],below['拆解费用'][j]
+  #在检测中 如果检测出次品 做出决策 判断是否要拆
+  __MODS_DISMANTLE_AFTER__ = choice
+  #拆
+  if __MODS_DISMANTLE_AFTER__ == 1:
+    print('是否拆解决策->如果检测不合格(即次品)拆解')
+    inspection = cost + (rate * (dismantle + COST + x1 * testing_cost[0] + x2 * testing_cost[1]) )
+  #不拆
+  else:
+    print('是否拆解决策->如果检测出次品不拆解(直接丢弃)')
+    inspection = cost + rate * (PRICE_A + PRICE_B + COST + dismantle + x1 * testing_cost[0] + x2 * testing_cost[1]) 
+  return inspection,__MODS_DISMANTLE_AFTER__
+
+#不检测
+#below 不合格成品
+def CalculateTheLossOfFinishedProductInspectionWithout(below,j,x1,x2,choice,testing_cost,rate):
+  inspection = 0
+  change,dismantle = below['调换损失'][j], below['拆解费用'][j]
+  #做出决策
+  __MODS_DISMANTLE_BACK__ = choice
+  #拆
+  if __MODS_DISMANTLE_BACK__ == 1:
+    print('是否拆解决策->市场调回的不合格品拆解')
+    inspection = change * rate + __MODS_DISMANTLE_BACK__ * (dismantle + COST  + x1 * testing_cost[0] + x2 * testing_cost[1]) * rate
+  #不拆
+  else:
+    print('是否拆解决策->市场调回的不合格品不拆解(直接丢弃)')
+    inspection = change * rate + rate * (PRICE_A + PRICE_B + COST + x1 * testing_cost[0] + x2 * testing_cost[1])
+  return inspection,__MODS_DISMANTLE_BACK__
+
+#笛卡尔积
+def IterTools():
+  # 枚举五个变量，每个变量的取值是 0 或 1
+  variables = [0, 1]
+  all_combinations = list(itertools.product(variables, repeat=4))
+  return all_combinations
+   
+   
+   
+def Decision(__MODS_A__,__MODS_B__,__MODS_PRODUCTS__,results):
+  # 产生决策
+  iter = IterTools()
+  MODS_A = init()['MODS_A']
+  MODS_B = init()['MODS_B']
+  PRODUCTS = init()['PRODUCTS']
+  BELOWS = init()['BELOWS']
+  
+  # 遍历六种情况 
+  for j in range(0,6):
+      # 利润
+      PROFIT = [0,0,0,0,0,0] 
+      print('******第一种情况******')
+      # 每种情况不断循环决策 从笛卡尔积中拿出来一种决策
+      for making_choice in iter:
+        print('决策数:',making_choice)
+        #零件做出决策
+        decisionA = making_choice[0] 
+        decisionB = making_choice[1]
+        print('---零件检测决策---')
+        res = ActualYield(decisionA,decisionB,dataA=MODS_A,dataB=MODS_B,products=PRODUCTS,j=j)
+        #检测费用
+        testing_cost = [0,0]
+        print('零件检测决策-> 零件A:',__MODS_A__[decisionA],',','零件B:',__MODS_B__[decisionB],',','决策结果产出的实际次品率:',res['实际次品率'])
+        #决策后，根据decisionA 和 decisionB 来计算损失
+        if __MODS_A__[decisionA] == 1 and __MODS_B__[decisionB] == 0:
+          testing_cost[0] = CalculatingPartLoss(MODS_A,j) #
+        elif __MODS_A__[decisionA] == 0 and __MODS_B__[decisionB] == 1:
+          testing_cost[1] = CalculatingPartLoss(MODS_B,j) #检测B但是不检测A
+        elif __MODS_A__[decisionA] == 1 and __MODS_B__[decisionB] == 1:
+          testing_cost[0] = CalculatingPartLoss(MODS_A,j) 
+          testing_cost[1] = CalculatingPartLoss(MODS_B,j)
+        else:
+          testing_cost[0] = 0
+          testing_cost[1] = 0
+        print('该决策下的检测费用为:',testing_cost[0]+testing_cost[1]) #检测费用
+      
+        #成品做出决策
+        print('---成品检测决策---')
+        decisionProducts = making_choice[2]
+        finished_product_inspection = 0
+        #如果成品检测
+        if __MODS_PRODUCTS__[decisionProducts] == 1:
+          #计算成品检测损失
+          print('---是否拆解决策---')
+          finished_product_inspection,after = CalculateTheLossOfFinishedProductInspection(PRODUCTS,BELOWS,
+                                                      j=j,choice=making_choice[3],
+                                                      x1=__MODS_A__[decisionA],x2=__MODS_B__[decisionB],
+                                                      testing_cost=testing_cost,rate=res['实际次品率'])
+          print('成品检测决策->成品检测')
+        #不检测
+        else:
+          print('成品检测决策->成品不检测')
+        
+          finished_product_inspection,back = CalculateTheLossOfFinishedProductInspectionWithout(BELOWS,j
+                                                                                          ,x1=__MODS_A__[decisionA],
+                                                                                          x2=__MODS_B__[decisionB],
+                                                                                          choice=making_choice[3],
+                                                                                          testing_cost=testing_cost,
+                                                                                          rate=res['实际次品率'])
+        print('成品检测损失费用为:',finished_product_inspection)
+        #计算利润
+        CONST = SALES - (PRICE_A + PRICE_B + COST) 
+        TIME_PROFIT = CONST - (testing_cost[0]+testing_cost[1]) - finished_product_inspection
+        #保存结果
+        results.append([f'情况{j+1}',{'决策数':making_choice,'利润':TIME_PROFIT}])
+      
+        print('第一种情况下该道利润为:',TIME_PROFIT)
+        PROFIT[j] = max(PROFIT[j],TIME_PROFIT)
+        print('第一种情况最大利润为:',PROFIT[j])
+        print('===做出的决策===')
+        #保存该次做出的决策
+        print('1.零件决策:','零件A:',__MODS_A__[decisionA],'零件B',__MODS_B__[decisionB])
+        print('2.成品检验决策:',__MODS_PRODUCTS__[decisionProducts])
+        if __MODS_PRODUCTS__[decisionProducts] == 1:
+          print('3.如果成品检验下，检测出次品，拆与不拆的决策:',after)
+        else:
+          print('3.如果成品不检验下，市场发现次品调回后，拆与不拆的决策:',back)
+      
+        print('\n')
+      print('第',j,'种情况下最大利润:',PROFIT[j])
+      print('******第',j,'种情况结束******')
+      print('\n')
+
+if __name__ == '__main__':
+  #开始随机决策
+  MODS_A = init()['MODS_A']
+  #定义决策变量
+  __MODS_A__ = (0,1)  #零件12是否检测
+  __MODS_B__ = (0,1)
+  __MODS_PRODUCTS__ = (0,1) #成品是否检验
+  Decision(__MODS_A__,__MODS_B__,__MODS_PRODUCTS__,results)
+  # print(results)
+  df = pd.DataFrame(results,columns=['情况','决策情况'])
+  # df.to_excel('D:\\question4best.xlsx', sheet_name='利润和决策数', index=True)
+```
+
+
+对于最坏情况 
+
+和上面的代码无区别，只是替换了最差的次品率
+
+```python
+import pandas as pd
+import numpy as np
+from decimal import Decimal, getcontext
+import random
+import itertools
+# 设置精度
+getcontext().prec = 10  # 设置全局精度
+#定义常量
+SALES = 56  #成品的市场售价
+PRICE_A = 4 #零件1和2的单价
+PRICE_B = 18
+COST = 6  #装配成本
+#结果
+results = []
+  
+def init():
+  #零件
+  DATA = {'A':[
+    [0.16493373733200978,PRICE_A,2],[0.2865783164426797,PRICE_A,2],[0.16493373733200978,PRICE_A,2],[0.2865783164426797,PRICE_A,1],[0.16493373733200978,4,8],[0.09717326650944083,PRICE_A,2]
+  ],'B':[
+    [0.16493373733200978,PRICE_B,3],[0.2865783164426797,PRICE_B,3],[0.16493373733200978,PRICE_B,3],[0.2865783164426797,PRICE_B,1],[0.2865783164426797,PRICE_B,1],[0.09717326650944083,PRICE_B,3]
+  ]}
+  #成品
+  PRODUCTS = [[0.16493373733200978,COST,3,SALES],[0.2865783164426797,COST,3,SALES],[0.16493373733200978,COST,3,SALES],[0.2865783164426797,COST,2,SALES],[0.16493373733200978,COST,2,SALES],[0.09717326650944083,COST,3,SALES]]
+  #不合格成品
+  BELOWS = [[6,5],[6,5],[30,5],[30,5],[10,5],[10,40]]
+  DATA_COL = ['次品率','购买单价','检测成本']
+  PRODUCTS_COL = ['次品率','装配成本','检测成本','市场售价']
+  BELOWS_COL = ['调换损失','拆解费用']
+  return {
+    'MODS_A':pd.DataFrame(data=DATA['A'],columns=DATA_COL),
+    'MODS_B':pd.DataFrame(data=DATA['B'],columns=DATA_COL),
+    'PRODUCTS':pd.DataFrame(data=PRODUCTS,columns=PRODUCTS_COL),
+    'BELOWS':pd.DataFrame(BELOWS,columns=BELOWS_COL)
+  }
+  
+#计算实际成品率和实际次品率
+# x1、x2为决策，data为零件数据 products为成品数据 i为哪个零件取A或B j为第几种情况
+def ActualYield(x1, x2, dataA, dataB, products, j):
+    # 使用 Decimal 进行精度控制
+    actual = {'实际次品率': None, '实际成品率': None}
+  
+    #决策
+    if x1 == 1 and x2 == 1:
+        actual['实际成品率'] = Decimal(1) - Decimal(products['次品率'][j])
+    if x1 == 0 and x2 == 1:
+        actual['实际成品率'] = (Decimal(1) - Decimal(dataA['次品率'][j])) * Decimal(1) * (Decimal(1) - Decimal(products['次品率'][j]))
+    if x1 == 1 and x2 == 0:
+        actual['实际成品率'] = Decimal(1) * (Decimal(1) - Decimal(dataB['次品率'][j])) * (Decimal(1) - Decimal(products['次品率'][j]))
+    if x1 == 0 and x2 == 0:
+        actual['实际成品率'] = (Decimal(1) - Decimal(dataA['次品率'][j])) * (Decimal(1) - Decimal(dataB['次品率'][j])) * (Decimal(1) - Decimal(products['次品率'][j]))
+  
+    # 计算实际次品率
+    actual['实际次品率'] = Decimal(1) - actual['实际成品率']
+    return actual
+
+#计算零件检测损失 purchase:购买单价 defective:次品率 cost检测成本
+def CalculatingPartLoss(data,j):
+  purchase,defective,cost = data['购买单价'][j],data['次品率'][j],data['检测成本'][j]
+  return purchase * Decimal(defective) + cost
+
+#cost检测成本 __MODS_DISMANTLE__决策变量是否要拆解 below不合格品
+# dismantle拆解费用 x1 x2分别是两个零件是否检测 testing_cost检测费用 rate是实际次品率
+def CalculateTheLossOfFinishedProductInspection(data,below,j,choice,x1,x2,testing_cost,rate):
+  inspection = 0
+  cost,dismantle = data['检测成本'][j],below['拆解费用'][j]
+  #在检测中 如果检测出次品 做出决策 判断是否要拆
+  __MODS_DISMANTLE_AFTER__ = choice
+  #拆
+  if __MODS_DISMANTLE_AFTER__ == 1:
+    print('是否拆解决策->如果检测不合格(即次品)拆解')
+    inspection = cost + (rate * (dismantle + COST + x1 * testing_cost[0] + x2 * testing_cost[1]) )
+  #不拆
+  else:
+    print('是否拆解决策->如果检测出次品不拆解(直接丢弃)')
+    inspection = cost + rate * (PRICE_A + PRICE_B + COST + dismantle + x1 * testing_cost[0] + x2 * testing_cost[1]) 
+  return inspection,__MODS_DISMANTLE_AFTER__
+
+#不检测
+#below 不合格成品
+def CalculateTheLossOfFinishedProductInspectionWithout(below,j,x1,x2,choice,testing_cost,rate):
+  inspection = 0
+  change,dismantle = below['调换损失'][j], below['拆解费用'][j]
+  #做出决策
+  __MODS_DISMANTLE_BACK__ = choice
+  #拆
+  if __MODS_DISMANTLE_BACK__ == 1:
+    print('是否拆解决策->市场调回的不合格品拆解')
+    inspection = change * rate + __MODS_DISMANTLE_BACK__ * (dismantle + COST  + x1 * testing_cost[0] + x2 * testing_cost[1]) * rate
+  #不拆
+  else:
+    print('是否拆解决策->市场调回的不合格品不拆解(直接丢弃)')
+    inspection = change * rate + rate * (PRICE_A + PRICE_B + COST + x1 * testing_cost[0] + x2 * testing_cost[1])
+  return inspection,__MODS_DISMANTLE_BACK__
+
+#笛卡尔积
+def IterTools():
+  # 枚举五个变量，每个变量的取值是 0 或 1
+  variables = [0, 1]
+  all_combinations = list(itertools.product(variables, repeat=4))
+  return all_combinations
+   
+   
+   
+def Decision(__MODS_A__,__MODS_B__,__MODS_PRODUCTS__,results):
+  # 产生决策
+  iter = IterTools()
+  MODS_A = init()['MODS_A']
+  MODS_B = init()['MODS_B']
+  PRODUCTS = init()['PRODUCTS']
+  BELOWS = init()['BELOWS']
+  
+  # 遍历六种情况 
+  for j in range(0,6):
+      # 利润
+      PROFIT = [0,0,0,0,0,0] 
+      print('******第一种情况******')
+      # 每种情况不断循环决策 从笛卡尔积中拿出来一种决策
+      for making_choice in iter:
+        print('决策数:',making_choice)
+        #零件做出决策
+        decisionA = making_choice[0] 
+        decisionB = making_choice[1]
+        print('---零件检测决策---')
+        res = ActualYield(decisionA,decisionB,dataA=MODS_A,dataB=MODS_B,products=PRODUCTS,j=j)
+        #检测费用
+        testing_cost = [0,0]
+        print('零件检测决策-> 零件A:',__MODS_A__[decisionA],',','零件B:',__MODS_B__[decisionB],',','决策结果产出的实际次品率:',res['实际次品率'])
+        #决策后，根据decisionA 和 decisionB 来计算损失
+        if __MODS_A__[decisionA] == 1 and __MODS_B__[decisionB] == 0:
+          testing_cost[0] = CalculatingPartLoss(MODS_A,j) #
+        elif __MODS_A__[decisionA] == 0 and __MODS_B__[decisionB] == 1:
+          testing_cost[1] = CalculatingPartLoss(MODS_B,j) #检测B但是不检测A
+        elif __MODS_A__[decisionA] == 1 and __MODS_B__[decisionB] == 1:
+          testing_cost[0] = CalculatingPartLoss(MODS_A,j) 
+          testing_cost[1] = CalculatingPartLoss(MODS_B,j)
+        else:
+          testing_cost[0] = 0
+          testing_cost[1] = 0
+        print('该决策下的检测费用为:',testing_cost[0]+testing_cost[1]) #检测费用
+      
+        #成品做出决策
+        print('---成品检测决策---')
+        decisionProducts = making_choice[2]
+        finished_product_inspection = 0
+        #如果成品检测
+        if __MODS_PRODUCTS__[decisionProducts] == 1:
+          #计算成品检测损失
+          print('---是否拆解决策---')
+          finished_product_inspection,after = CalculateTheLossOfFinishedProductInspection(PRODUCTS,BELOWS,
+                                                      j=j,choice=making_choice[3],
+                                                      x1=__MODS_A__[decisionA],x2=__MODS_B__[decisionB],
+                                                      testing_cost=testing_cost,rate=res['实际次品率'])
+          print('成品检测决策->成品检测')
+        #不检测
+        else:
+          print('成品检测决策->成品不检测')
+        
+          finished_product_inspection,back = CalculateTheLossOfFinishedProductInspectionWithout(BELOWS,j
+                                                                                          ,x1=__MODS_A__[decisionA],
+                                                                                          x2=__MODS_B__[decisionB],
+                                                                                          choice=making_choice[3],
+                                                                                          testing_cost=testing_cost,
+                                                                                          rate=res['实际次品率'])
+        print('成品检测损失费用为:',finished_product_inspection)
+        #计算利润
+        CONST = SALES - (PRICE_A + PRICE_B + COST) 
+        TIME_PROFIT = CONST - (testing_cost[0]+testing_cost[1]) - finished_product_inspection
+        #保存结果
+        results.append([f'情况{j+1}',{'决策数':making_choice,'利润':TIME_PROFIT}])
+      
+        print('第一种情况下该道利润为:',TIME_PROFIT)
+        PROFIT[j] = max(PROFIT[j],TIME_PROFIT)
+        print('第一种情况最大利润为:',PROFIT[j])
+        print('===做出的决策===')
+        #保存该次做出的决策
+        print('1.零件决策:','零件A:',__MODS_A__[decisionA],'零件B',__MODS_B__[decisionB])
+        print('2.成品检验决策:',__MODS_PRODUCTS__[decisionProducts])
+        if __MODS_PRODUCTS__[decisionProducts] == 1:
+          print('3.如果成品检验下，检测出次品，拆与不拆的决策:',after)
+        else:
+          print('3.如果成品不检验下，市场发现次品调回后，拆与不拆的决策:',back)
+      
+        print('\n')
+      print('第',j,'种情况下最大利润:',PROFIT[j])
+      print('******第',j,'种情况结束******')
+      print('\n')
+
+if __name__ == '__main__':
+  #开始随机决策
+  MODS_A = init()['MODS_A']
+  #定义决策变量
+  __MODS_A__ = (0,1)  #零件12是否检测
+  __MODS_B__ = (0,1)
+  __MODS_PRODUCTS__ = (0,1) #成品是否检验
+  Decision(__MODS_A__,__MODS_B__,__MODS_PRODUCTS__,results)
+  # print(results)
+  df = pd.DataFrame(results,columns=['情况','决策情况'])
+  # df.to_excel('D:\\question4lose.xlsx', sheet_name='利润和决策数', index=True)
+```
