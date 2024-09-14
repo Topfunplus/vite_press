@@ -23,7 +23,7 @@ export default defineConfig({
       {
         text: '目录',
         items: [
-          +{ text: 'Vue开发经验', link: '/vue.md' },
+          { text: 'Vue开发经验', link: '/vue.md' },
           { text: 'webpack理解', link: '/webpack.md' },
           { text: 'React 语法学习', link: '/markdown-examples' },
           { text: 'React API学习', link: '/api-examples' },

@@ -150,3 +150,60 @@ export default __sfc__;
 * `export default __sfc__`：导出这个组件，使其可以在其他文件中使用。
 * 这个组件在页面上渲染了一个包含 `'Hello World!'` 的 `<h1>` 元素和一个 `<input>` 输入框。
 * 输入框的内容与 `msg` 双向绑定，用户在输入框中输入的内容会更新 `msg` 的值，而更新后的 `msg` 会自动反映到 `<h1>` 元素中，达到数据和视图同步更新的效果。
+
+
+# 开发经验
+
+1.响应式数据赋值Object.assgin()
+
+```
+使用 Object.assign() 来赋值不会导致失去响应式，但有一些细节需要注意。
+
+在 Vue 2 中，响应式系统是基于数据对象的属性进行追踪的。当你使用 Object.assign() 给已有的对象（如 this.currentInfo）赋值时，Vue 会检测到这些属性的改变，从而触发响应式更新。所以在这种情况下，Object.assign() 不会导致失去响应式。
+
+但是，如果你使用 Object.assign() 给 this.currentInfo 添加新的属性（即之前未在 data 或 currentInfo 中声明过的属性），那么这些新添加的属性是非响应式的。Vue 2 的响应式系统只能追踪到组件初始化时已经存在的属性。为了解决这个问题，可以使用 this.$set() 手动添加新的属性。
+
+在你给出的例子中，this.currentInfo 中的属性（如 relationName, id, relationTel 等）应该已经在 data 中定义过，所以直接使用 Object.assign() 是不会失去响应式的。
+```
+
+
+
+例如以下代码减轻了this:
+
+```js
+jumpBankNo(row) {
+      this.currentInfo = Object.assign(this.currentInfo, {
+        relationName: row.relationName,
+        id: row.id,
+        relationTel: row.relationTel,
+        address: row.address,
+        surplusMoney: row.surplusMoney,
+        salesman: row.salesman,
+        leader: row.leader,
+        leaderTel: row.leaderTel,
+        region: row.region,
+        salesManager: row.salesManager,
+        province: row.province,
+        city: row.city,
+        county: row.county,
+        comments: row.comments,
+        companyName: row.companyName
+      });
+      //查询已绑定的银行卡信息
+      listBankAccount({companyId: row.id, acountsType: '客户'})
+        .then(res => {
+          this.singleInfo = res.rows
+        })
+      listBankAccount({acountsType: '客户默认', companyId: row.id})
+        .then(res => {
+          if (res.rows.length > 0) {
+            this.defaultBankCardInfo = res.rows[0]
+          } else {
+            this.defaultBankCardInfo.not = true
+          }
+          setTimeout(() => {
+            this.dialogFormVisible = true
+          }, 20)
+        })
+    },
+```
