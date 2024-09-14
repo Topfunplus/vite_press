@@ -365,8 +365,6 @@ npm i css-loader style-loader -D
 
 3.如果需要处理其他的，可以去官方文档找，里面有很多的loader
 
-![](C:\Users\大帅比的电脑\OneDrive\桌面\案例\前端\前端笔记-html+css+js\4-webpack入门\实例\imgs\loader.png)
-
 4.接下来配置 `webpack.config.js`
 
 ```js
@@ -416,8 +414,6 @@ webpack 5.90.3 compiled successfully in 399 ms
 ```
 
 然后网页中查看，发现动态添加了一个style
-
-![](C:\Users\大帅比的电脑\OneDrive\桌面\案例\前端\前端笔记-html+css+js\4-webpack入门\实例\imgs\css.png)
 
 ## 处理less
 
@@ -560,8 +556,6 @@ output: {
 ```
 
 这时候会发现都输出到dist的js下了
-
-![](C:\Users\大帅比的电脑\OneDrive\桌面\案例\前端\前端笔记-html+css+js\4-webpack入门\实例\imgs\dist2.png)
 
 如果希望js打包到js目录下
 
