@@ -224,3 +224,46 @@ package.json如下:
 import {format} from "jsondiffpatch/formatters/html";
 ```
 
+
+
+
+
+
+
+#### 原型对象
+
+##### 1.prototype
+
+要理解 JavaScript 的 **原型（prototype）**，可以想象原型是一个“共享的工具箱”，这个工具箱里装着每个对象可以用的工具（属性和方法）。当你创建一个对象时，如果你需要用到某个工具（例如一个方法），它首先会在自己的盒子里找找看是否有这个工具；如果没有，它会去“共享工具箱”（即原型）里寻找这个工具。如果它在工具箱里找到了，就直接拿来用。如果整个链条上都找不到这个工具，它才会告诉你“没有这个工具”。
+
+```js
+function Person(name) {
+  this.name = name; // 每个对象都可以有自己的名字
+}
+
+Person.prototype.greet = function() {
+  console.log('Hello, my name is ' + this.name);
+};
+
+const alice = new Person('Alice');
+alice.greet(); // Hello, my name is Alice
+```
+
+但是，`alice` 没有 `greet` 方法！所以，JavaScript 会去找这个对象的原型（共享工具箱）里看看有没有 `greet`。幸运的是，在 `Person.prototype`（共享工具箱）里找到了 `greet` 这个方法，所以它能调用 `greet()`
+
+**原型（`Person.prototype`）** 是这个对象的共享工具箱。所有用 `Person` 构造函数创建出来的人（对象），都可以从这个工具箱里拿到工具使用，而不用自己重新定义。
+
+```js
+const bob = new Person('Bob');
+bob.greet(); // Hello, my name is Bob
+```
+
+##### 2.__proto__
+
+每个对象都有一个 `__proto__` 属性，指向它的原型（即共享的工具箱 `Person.prototype`）。你可以把 `__proto__` 想象成一条链接，连接到对象背后的工具箱。我们可以通过这个属性查看对象的原型。
+
+```js
+console.log(alice.__proto__ === Person.prototype); // true
+console.log(bob.__proto__ === Person.prototype);   // true
+```
+
